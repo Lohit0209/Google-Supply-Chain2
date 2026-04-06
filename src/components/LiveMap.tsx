@@ -141,26 +141,34 @@ export const LiveMap: React.FC<Props> = ({ origin, destination, selectedScenario
          if (isFrankfurt(p2[0], lon2)) path.push([51.9, 4.4]);
          
          path.push(p2);
-         paths.push(path);
+         // Make continuous for leaflet wrapping over dateline
+         const continuousPath: [number, number][] = [[path[0][0], path[0][1]]];
+         for (let i = 1; i < path.length; i++) {
+             let prevLon = continuousPath[i-1][1];
+             let currLon = path[i][1];
+             while (currLon - prevLon > 180) currLon -= 360;
+             while (prevLon - currLon > 180) currLon += 360;
+             continuousPath.push([path[i][0], currLon]);
+         }
+         paths.push(continuousPath);
          return;
       }
 
       // Add a slight arc curve to flight paths to look natural
       const arcPoints: [number, number][] = [];
       const numPoints = 30;
+      let lon1 = p1[1];
+      let lon2 = p2[1];
+      
+      // Calculate shortest continuous arc around the globe (do not wrap within loop)
+      if (lon2 - lon1 > 180) lon2 -= 360;
+      else if (lon1 - lon2 > 180) lon2 += 360;
+
       for (let i = 0; i <= numPoints; i++) {
         const t = i / numPoints;
         const lat = p1[0] * (1 - t) + p2[0] * t;
-        let lng = p1[1] * (1 - t) + p2[1] * t;
+        const lng = lon1 * (1 - t) + lon2 * t;
         
-        // Handle Pacific wrap-around for air routes
-        if (Math.abs(p1[1] - p2[1]) > 180) {
-            let adjustedLon2 = p2[1] < 0 ? p2[1] + 360 : p2[1] - 360;
-            lng = p1[1] * (1 - t) + adjustedLon2 * t;
-            if (lng > 180) lng -= 360;
-            if (lng < -180) lng += 360;
-        }
-
         const offset = Math.sin(t * Math.PI) * 15; // Flight arch
         arcPoints.push([lat + offset, lng]);
       }
