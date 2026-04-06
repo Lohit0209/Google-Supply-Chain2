@@ -68,31 +68,100 @@ export const LiveMap: React.FC<Props> = ({ origin, destination, selectedScenario
          return;
       }
       
-      // Intelligent Routing visual for Sea crossing continents (simulating real shipping lanes instead of drawing through land)
       if (mode === 'sea') {
-         const lon1 = p1[1];
-         const lon2 = p2[1];
-         // Africa bypass (Cape of Good Hope) if crossing between Asia and Americas roughly
-         if ((lon1 > 40 && lon2 < -20) || (lon1 < -20 && lon2 > 40)) {
-             paths.push([p1, [-35, 20], p2]);
-             return;
+         const lon1 = p1[1] > 180 ? p1[1] - 360 : p1[1];
+         const lon2 = p2[1] > 180 ? p2[1] - 360 : p2[1];
+         
+         const isAsia = (lon: number) => lon > 40 && lon < 150;
+         const isEurope = (lon: number) => lon > -10 && lon <= 40;
+         const isAmericasE = (lon: number) => lon < -40 && lon > -85;
+         const isAmericasW = (lon: number) => lon <= -85 || lon >= 180;
+         
+         const isDelhi = (lon: number) => lon > 75 && lon < 78;
+         const isFrankfurt = (lat: number, lon: number) => lat > 49 && lon > 8 && lon < 10;
+         
+         const path: [number, number][] = [p1];
+         
+         // Snap inland origins to nearest port
+         if (isDelhi(lon1)) path.push([18.9, 72.8]); // Mumbai
+         if (isFrankfurt(p1[0], lon1)) path.push([51.9, 4.4]); // Rotterdam
+
+         // Hardcoded Oceanic Corridors
+         if (isAsia(lon1) && isAmericasW(lon2)) {
+             path.push([1.3, 103.8]);  // Singapore
+             path.push([15, -160]);    // Cross Pacific
+         } 
+         else if (isAmericasW(lon1) && isAsia(lon2)) {
+             path.push([15, -160]);    // Cross Pacific
+             path.push([1.3, 103.8]);  // Singapore
          }
-         // Suez Canal bypass if crossing Asia to Europe
-         if ((lon1 > 40 && lon2 > -10 && lon2 < 40 && p2[0] > 30) || (lon2 > 40 && lon1 > -10 && lon1 < 40 && p1[0] > 30)) {
-             paths.push([p1, [12, 45], [27, 34], [35, 20], p2]);
-             return;
+         else if (isAsia(lon1) && isAmericasE(lon2)) {
+             path.push([12, 45]);      // Gulf of Aden
+             path.push([27, 34]);      // Suez
+             path.push([36, -10]);     // Gibraltar
+             path.push([35, -40]);     // Mid Atlantic
          }
+         else if (isAmericasE(lon1) && isAsia(lon2)) {
+             path.push([35, -40]);     // Mid Atlantic
+             path.push([36, -10]);     // Gibraltar
+             path.push([27, 34]);      // Suez
+             path.push([12, 45]);      // Gulf of Aden
+         }
+         else if (isAsia(lon1) && isEurope(lon2)) {
+             path.push([12, 45]);
+             path.push([27, 34]);
+             path.push([36, 15]);      // Mediterranean
+         }
+         else if (isEurope(lon1) && isAsia(lon2)) {
+             path.push([36, 15]);
+             path.push([27, 34]);
+             path.push([12, 45]);
+         }
+         else if (isEurope(lon1) && isAmericasW(lon2)) {
+             path.push([30, -40]);
+             path.push([15, -75]);     // Caribbean
+             path.push([9, -79.5]);    // Panama Canal
+         }
+         else if (isAmericasW(lon1) && isEurope(lon2)) {
+             path.push([9, -79.5]);
+             path.push([15, -75]);
+             path.push([30, -40]);
+         }
+         else if (isAmericasE(lon1) && isAmericasW(lon2)) {
+             path.push([20, -70]);
+             path.push([9, -79.5]);    // Panama Canal
+         }
+         else if (isAmericasW(lon1) && isAmericasE(lon2)) {
+             path.push([9, -79.5]);    // Panama Canal
+             path.push([20, -70]);
+         }
+
+         // Snap inland destinations to nearest port
+         if (isDelhi(lon2)) path.push([18.9, 72.8]);
+         if (isFrankfurt(p2[0], lon2)) path.push([51.9, 4.4]);
+         
+         path.push(p2);
+         paths.push(path);
+         return;
       }
 
-      // Add a slight arc curve to flight paths to look natural (and sea routes that didn't trigger bypasses)
+      // Add a slight arc curve to flight paths to look natural
       const arcPoints: [number, number][] = [];
-      const numPoints = 20;
+      const numPoints = 30;
       for (let i = 0; i <= numPoints; i++) {
         const t = i / numPoints;
         const lat = p1[0] * (1 - t) + p2[0] * t;
-        const lng = p1[1] * (1 - t) + p2[1] * t;
-        // Arc offset based on sine wave, flights arch higher
-        const offset = Math.sin(t * Math.PI) * (mode === 'air' ? 12 : 3);
+        let lng = p1[1] * (1 - t) + p2[1] * t;
+        
+        // Handle Pacific wrap-around for air routes
+        if (Math.abs(p1[1] - p2[1]) > 180) {
+            let adjustedLon2 = p2[1] < 0 ? p2[1] + 360 : p2[1] - 360;
+            lng = p1[1] * (1 - t) + adjustedLon2 * t;
+            if (lng > 180) lng -= 360;
+            if (lng < -180) lng += 360;
+        }
+
+        const offset = Math.sin(t * Math.PI) * 15; // Flight arch
         arcPoints.push([lat + offset, lng]);
       }
       paths.push(arcPoints);
