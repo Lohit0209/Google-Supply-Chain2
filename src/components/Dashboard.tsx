@@ -8,17 +8,15 @@ import { LiveMap } from './LiveMap';
 import { HUBS } from '../data/logisticsData';
 import type { ShipmentParams } from '../engine/RiskModeler';
 import type { Scenario } from '../engine/RouteOptimizer';
-import { ChevronDown, X, ShieldAlert, Zap, Settings2, BarChart3, Globe2 } from 'lucide-react';
+import { ChevronDown, ShieldAlert, Zap, Settings2, BarChart3, Globe2 } from 'lucide-react';
 import { RiskAlertsView } from './RiskAlertsView';
 import { OverviewView } from './OverviewView';
 import { useCurrency } from '../hooks/useCurrency';
-import { motion, AnimatePresence } from 'framer-motion';
 import { GlobalNetworkView } from './GlobalNetworkView';
 import { ShapExplainabilityView } from './ShapExplainabilityView';
 
 export const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ROUTING' | 'OVERVIEW' | 'NETWORK' | 'EXPLAIN' | 'RISKS' | 'COST'>('ROUTING');
-  const [isMapExpanded, setIsMapExpanded] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedScenarioName, setSelectedScenarioName] = useState<string | null>(null);
@@ -98,11 +96,11 @@ export const Dashboard: React.FC = () => {
   }, [scenarios, filters, budgetRange, sortBy]);
 
   const tabs = [
-    { id: 'ROUTING', label: 'Routes', icon: Zap },
-    { id: 'NETWORK', label: 'Map', icon: Globe2 },
+    { id: 'ROUTING', label: 'Routes & Path', icon: Zap },
   ];
 
   const advancedTabs = [
+    { id: 'NETWORK', label: 'Global Sim', icon: Globe2 },
     { id: 'OVERVIEW', label: 'Analytics', icon: BarChart3 },
     { id: 'RISKS', label: 'Risk Intel', icon: ShieldAlert },
     { id: 'EXPLAIN', label: 'AI Explain', icon: Settings2 },
@@ -235,10 +233,11 @@ export const Dashboard: React.FC = () => {
         {/* CENTER CONTENT: RESULTS / ANALYTICS */}
         <main className="content-panel" style={{ background: 'transparent' }}>
           {activeTab === 'ROUTING' ? (
-            <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <div>
-                   <h2 style={{ fontSize: 20, fontWeight: 800 }}>Tactical Routes</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(450px, 600px) 1fr', gap: 32, height: '100%', alignItems: 'start' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <div>
+                     <h2 style={{ fontSize: 20, fontWeight: 800 }}>Tactical Routes</h2>
                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{filteredScenarios.length} vectors synthesized for {params.originCity} → {params.destCity}</p>
                 </div>
                 <div style={{ position: 'relative' }}>
@@ -277,6 +276,11 @@ export const Dashboard: React.FC = () => {
                   </div>
                 )}
               </div>
+              </div>
+              
+              <div style={{ position: 'sticky', top: 0, height: 'calc(100vh - 280px)', minHeight: '600px', borderRadius: 24, overflow: 'hidden', border: '1px solid var(--border-bright)' }}>
+                 <LiveMap origin={params.originHub || HUBS[0]} destination={params.destHub || HUBS[1]} selectedScenario={selectedScenario} />
+              </div>
             </div>
           ) : (
             <div style={{ animation: 'fadeIn 0.3s', height: '100%' }}>
@@ -293,25 +297,6 @@ export const Dashboard: React.FC = () => {
           )}
         </main>
       </div>
-
-      {/* FULL MAP MODAL */}
-      <AnimatePresence>
-        {isMapExpanded && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)', padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', borderRadius: 24, overflow: 'hidden' }}>
-               <button onClick={() => setIsMapExpanded(false)} style={{ position: 'absolute', top: 24, right: 24, zIndex: 10001, background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', padding: 10, color: '#fff', cursor: 'pointer' }}>
-                 <X size={20} />
-               </button>
-               <LiveMap origin={params.originHub || HUBS[0]} destination={params.destHub || HUBS[1]} selectedScenario={selectedScenario} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
