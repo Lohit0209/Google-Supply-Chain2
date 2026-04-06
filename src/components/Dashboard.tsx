@@ -20,6 +20,8 @@ export const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ROUTING' | 'OVERVIEW' | 'NETWORK' | 'EXPLAIN' | 'RISKS' | 'COST'>('ROUTING');
   const [isMapExpanded, setIsMapExpanded] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedScenarioName, setSelectedScenarioName] = useState<string | null>(null);
   
   const [params, setParams] = useState<ShipmentParams>({
     itemType: 'electronics',
@@ -68,9 +70,15 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const selectedScenario = scenarios.find(s => s.name === selectedScenarioName) || scenarios.find(s => s.isRecommended) || scenarios[0];
+
   useEffect(() => {
+    // Initial search only
     handleSearch();
-  }, [globalGeopolRisk, chaosLevel]);
+  }, []);
+
+  // Removed [globalGeopolRisk, chaosLevel] from effect to prevent mid-session reloads
+  // unless manually triggered by a button that calls handleSearch.
 
   useEffect(() => {
     let result = [...scenarios];
@@ -90,11 +98,14 @@ export const Dashboard: React.FC = () => {
   }, [scenarios, filters, budgetRange, sortBy]);
 
   const tabs = [
-    { id: 'ROUTING', label: 'Tactical Routing', icon: Zap },
-    { id: 'OVERVIEW', label: 'Command Center', icon: BarChart3 },
-    { id: 'NETWORK', label: 'Global Map', icon: Globe2 },
-    { id: 'RISKS', label: 'Risk Intelligence', icon: ShieldAlert },
-    { id: 'EXPLAIN', label: 'AI Explainability', icon: Settings2 },
+    { id: 'ROUTING', label: 'Routes', icon: Zap },
+    { id: 'NETWORK', label: 'Map', icon: Globe2 },
+  ];
+
+  const advancedTabs = [
+    { id: 'OVERVIEW', label: 'Analytics', icon: BarChart3 },
+    { id: 'RISKS', label: 'Risk Intel', icon: ShieldAlert },
+    { id: 'EXPLAIN', label: 'AI Explain', icon: Settings2 },
   ];
 
   return (
@@ -109,14 +120,26 @@ export const Dashboard: React.FC = () => {
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <button 
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            style={{ 
+              padding: '8px 16px', 
+              background: showAdvanced ? 'var(--accent-primary)' : 'rgba(255,255,255,0.03)', 
+              borderRadius: 8, 
+              border: '1px solid var(--border-bright)', 
+              fontSize: 10, 
+              fontWeight: 800, 
+              color: showAdvanced ? 'white' : 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: '0.2s'
+            }}>
+             {showAdvanced ? 'HIDE_ADVANCED' : 'SHOW_ADVANCED'}
+          </button>
+          <div style={{ width: 1, height: 24, background: 'var(--border-dim)' }} />
           <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border-dim)', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>
              <span className="pulse" style={{ display: 'inline-block', width: 6, height: 6, background: 'var(--accent-emerald)', borderRadius: '50%', marginRight: 8 }} />
              NETWORK_ACTIVE
           </div>
-          <div style={{ width: 1, height: 24, background: 'var(--border-dim)' }} />
-          <button style={{ background: 'none', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer' }}>
-            <Settings2 size={20} />
-          </button>
         </div>
       </header>
 
@@ -147,9 +170,9 @@ export const Dashboard: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                padding: '10px 20px',
+                padding: '8px 24px',
                 borderRadius: 8,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 700,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -158,10 +181,40 @@ export const Dashboard: React.FC = () => {
                 border: activeTab === tab.id ? '1px solid var(--border-bright)' : '1px solid transparent',
               }}
             >
-              <tab.icon size={16} color={activeTab === tab.id ? 'var(--accent-primary)' : 'currentColor'} />
+              <tab.icon size={14} color={activeTab === tab.id ? 'var(--accent-primary)' : 'currentColor'} />
               {tab.label}
             </button>
           ))}
+          
+          {showAdvanced && (
+            <>
+              <div style={{ width: 1, height: 20, background: 'var(--border-dim)', margin: 'auto 8px' }} />
+              {advancedTabs.map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 24px',
+                    borderRadius: 8,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    background: activeTab === tab.id ? 'var(--bg-card)' : 'transparent',
+                    color: activeTab === tab.id ? 'white' : 'var(--text-muted)',
+                    border: activeTab === tab.id ? '1px solid var(--border-bright)' : '1px solid transparent',
+                    opacity: 0.8
+                  }}
+                >
+                  <tab.icon size={14} color={activeTab === tab.id ? 'var(--accent-primary)' : 'currentColor'} />
+                  {tab.label}
+                </button>
+              ))}
+            </>
+          )}
         </div>
       </div>
 
@@ -208,7 +261,13 @@ export const Dashboard: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {filteredScenarios.length > 0 ? (
                   filteredScenarios.map((s, idx) => (
-                    <RouteCard key={s.name} scenario={s} index={idx} />
+                    <RouteCard 
+                      key={s.name} 
+                      scenario={s} 
+                      index={idx} 
+                      onSelect={() => setSelectedScenarioName(s.name)}
+                      isSelected={selectedScenarioName === s.name || (selectedScenarioName === null && s.isRecommended)}
+                    />
                   ))
                 ) : (
                   <div className="card" style={{ textAlign: 'center', padding: '120px 40px', background: 'rgba(255,255,255,0.01)', borderStyle: 'dashed' }}>
@@ -248,7 +307,7 @@ export const Dashboard: React.FC = () => {
                <button onClick={() => setIsMapExpanded(false)} style={{ position: 'absolute', top: 24, right: 24, zIndex: 10001, background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', padding: 10, color: '#fff', cursor: 'pointer' }}>
                  <X size={20} />
                </button>
-               <LiveMap origin={params.originHub || HUBS[0]} destination={params.destHub || HUBS[1]} />
+               <LiveMap origin={params.originHub || HUBS[0]} destination={params.destHub || HUBS[1]} selectedScenario={selectedScenario} />
             </div>
           </motion.div>
         )}

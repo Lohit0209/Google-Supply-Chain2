@@ -2,7 +2,6 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { Hub } from '../data/logisticsData';
 
 // Fix for default marker icons in Leaflet + React
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -16,9 +15,13 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+import type { Hub } from '../data/logisticsData';
+import type { Scenario } from '../engine/RouteOptimizer';
+
 interface Props {
   origin: Hub;
   destination: Hub;
+  selectedScenario?: Scenario | null;
 }
 
 const ChangeView = ({ center, zoom }: { center: [number, number], zoom: number }) => {
@@ -40,7 +43,7 @@ const MapResizer = () => {
   return null;
 };
 
-export const LiveMap: React.FC<Props> = ({ origin, destination }) => {
+export const LiveMap: React.FC<Props> = ({ origin, destination, selectedScenario }) => {
   const center: [number, number] = [
     (origin.coordinates[0] + destination.coordinates[0]) / 2,
     (origin.coordinates[1] + destination.coordinates[1]) / 2,
@@ -50,6 +53,14 @@ export const LiveMap: React.FC<Props> = ({ origin, destination }) => {
     origin.coordinates,
     destination.coordinates,
   ];
+
+  const getPathColor = () => {
+    if (!selectedScenario) return '#6366f1';
+    const mode = selectedScenario.segments[0].mode;
+    if (mode === 'air') return 'var(--accent-cyan)';
+    if (mode === 'sea') return 'var(--accent-primary)';
+    return 'var(--accent-emerald)';
+  };
 
   return (
     <div className="map-container animate-in" style={{ height: '100%', width: '100%', position: 'relative' }}>
@@ -87,11 +98,11 @@ export const LiveMap: React.FC<Props> = ({ origin, destination }) => {
         <Polyline 
           positions={polyline} 
           pathOptions={{ 
-            color: '#6366f1', 
-            weight: 3, 
-            dashArray: '1, 10',
+            color: getPathColor(), 
+            weight: 4, 
+            dashArray: selectedScenario?.segments[0].mode === 'air' ? '1, 12' : 'none',
             lineCap: 'round',
-            opacity: 0.8
+            opacity: 0.9
           }} 
         />
       </MapContainer>

@@ -7,9 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface Props {
   scenario: Scenario;
   index: number;
+  onSelect?: () => void;
+  isSelected?: boolean;
 }
 
-export const RouteCard: React.FC<Props> = ({ scenario, index }) => {
+export const RouteCard: React.FC<Props> = ({ scenario, index, onSelect, isSelected }) => {
   const { format, naturalize } = useCurrency();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -26,7 +28,18 @@ export const RouteCard: React.FC<Props> = ({ scenario, index }) => {
               scenario.totalTime < 5 ? 'Fastest' : null;
 
   return (
-    <div className={`route-card ${isExpanded ? 'active' : ''}`} onClick={() => setIsExpanded(!isExpanded)}>
+    <div 
+      className={`route-card ${isExpanded ? 'active' : ''}`} 
+      onClick={() => {
+        setIsExpanded(!isExpanded);
+        onSelect?.();
+      }}
+      style={{
+        border: isSelected ? '2px solid var(--accent-primary)' : '1px solid var(--border-dim)',
+        background: isSelected ? 'rgba(99, 102, 241, 0.05)' : 'var(--bg-card)',
+        position: 'relative'
+      }}
+    >
       {tag && (
         <div style={{ position: 'absolute', top: 0, right: 24, padding: '6px 16px', background: tag === 'Recommended' ? 'var(--accent-emerald)' : 'var(--accent-primary)', fontSize: 10, fontWeight: 800, color: '#fff', borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}>
           {tag.toUpperCase()}

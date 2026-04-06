@@ -79,24 +79,22 @@ export class RouteOptimizer {
     };
 
     // 1. Expedited (Air)
-    scenarios.push(this.createScenario('Option 1: Expedited', 'AIR', 'air', distance, params, origin, destination, signals, false, chaosLevel));
+    scenarios.push(this.createScenario('Expedited', 'AIR', 'air', distance, params, origin, destination, signals, false, chaosLevel));
     
-    // 2. Economical (Sea)
-    scenarios.push(this.createScenario('Option 2: Economical', 'OCEAN', 'sea', distance, params, origin, destination, signals, false, chaosLevel));
+    // 2. Economical (Ocean)
+    scenarios.push(this.createScenario('Economical', 'OCEAN', 'sea', distance, params, origin, destination, signals, false, chaosLevel));
     
-    // 3. Strategic (High Safety / ESG Focus)
-    scenarios.push(this.createScenario('Option 3: Strategic ESG', 'MULTIMODAL', 'sea', distance, params, origin, destination, signals, true, chaosLevel));
+    // 3. Strategic (Balanced)
+    scenarios.push(this.createScenario('Strategic', 'MULTIMODAL', 'sea', distance, params, origin, destination, signals, true, chaosLevel));
     
-    // 4. Road (Surface)
-    if (origin.country === destination.country || chaosLevel > 0.5) {
-      scenarios.push(this.createScenario('Option 4: Tactical Surface', 'ROAD', 'road', distance, params, origin, destination, signals, false, chaosLevel));
-    }
-
     // SLA Check & Recommendation
     const recommended = this.buildRecommendation(scenarios, params);
-    scenarios.push(recommended);
-
-    return scenarios.map(s => this.applySLA(s, params));
+    
+    return scenarios.map(s => {
+      const scenario = this.applySLA(s, params);
+      if (scenario.name === recommended.name) scenario.isRecommended = true;
+      return scenario;
+    });
   }
 
   private static calculateDistance(coord1: [number, number], coord2: [number, number]): number {
@@ -143,7 +141,6 @@ export class RouteOptimizer {
     // FINANCIALS
     const manifestFreights: string[] = [];
     const manifestDuties: string[] = [];
-    const manifestEsg: string[] = [];
 
     const marketRateKg = mode === 'air' ? 6.50 : (mode === 'road' ? 0.45 : 0.12);
     const chaosPremium = 1 + (chaosLevel * 0.5);
