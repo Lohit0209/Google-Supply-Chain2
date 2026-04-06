@@ -49,10 +49,10 @@ export const LiveMap: React.FC<Props> = ({ origin, destination, selectedScenario
     (origin.coordinates[1] + destination.coordinates[1]) / 2,
   ];
 
-  const polyline: [number, number][] = [
-    origin.coordinates,
-    destination.coordinates,
-  ];
+  // Support multi-segment polylines for rerouting
+  const polylines = selectedScenario 
+    ? selectedScenario.segments.map(s => [s.from.coordinates, s.to.coordinates] as [number, number][])
+    : [[origin.coordinates, destination.coordinates] as [number, number][]];
 
   const getPathColor = () => {
     if (!selectedScenario) return '#6366f1';
@@ -95,16 +95,19 @@ export const LiveMap: React.FC<Props> = ({ origin, destination, selectedScenario
             </div>
           </Popup>
         </Marker>
-        <Polyline 
-          positions={polyline} 
-          pathOptions={{ 
-            color: getPathColor(), 
-            weight: 4, 
-            dashArray: selectedScenario?.segments[0].mode === 'air' ? '1, 12' : 'none',
-            lineCap: 'round',
-            opacity: 0.9
-          }} 
-        />
+        {polylines.map((path, idx) => (
+          <Polyline 
+            key={idx}
+            positions={path} 
+            pathOptions={{ 
+              color: getPathColor(), 
+              weight: 4, 
+              dashArray: selectedScenario?.segments[0].mode === 'air' ? '1, 12' : 'none',
+              lineCap: 'round',
+              opacity: 0.9
+            }} 
+          />
+        ))}
       </MapContainer>
       
       <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 1000, background: 'rgba(5, 7, 10, 0.8)', padding: '10px 16px', borderRadius: 8, backdropFilter: 'blur(12px)', border: '1px solid var(--border-dim)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
