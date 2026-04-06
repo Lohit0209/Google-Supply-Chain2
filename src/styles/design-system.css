@@ -1,0 +1,261 @@
+:root {
+  --bg-deep: #09090b; /* Zinc-950 */
+  --bg-surface: #18181b; /* Zinc-900 */
+  --bg-card: #27272a; /* Zinc-800 */
+  --accent-primary: #6366f1;
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border-dim: #27272a;
+  --border-bright: #3f3f46;
+  
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+}
+
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0;
+}
+
+input, button, select, textarea {
+  background: none;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 10px; }
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root, .App {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOP SEARCH BAR (GOOGLE FLIGHTS) */
+.top-search-header {
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border-dim);
+  padding: 32px 40px;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-dim);
+  max-width: 1200px;
+  width: 100%;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper svg {
+  position: absolute;
+  left: 16px;
+  color: var(--text-muted);
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 12px 16px 12px 44px;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.search-input:hover { background: rgba(255,255,255,0.03); }
+
+/* DROPDOWN UI */
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-bright);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  z-index: 2000;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropdown-item:hover { background: var(--bg-card); color: #fff; }
+.dropdown-item.active { background: var(--accent-primary); color: #fff; }
+
+/* LAYOUT STRUCTURE */
+.main-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  gap: 1px;
+  background: var(--border-dim);
+  overflow: hidden;
+}
+
+.sidebar-panel { background: var(--bg-deep); padding: 32px 24px; overflow-y: auto; }
+.content-panel { background: var(--bg-deep); padding: 32px 40px; overflow-y: auto; }
+.insights-panel { background: var(--bg-deep); padding: 32px 24px; border-left: 1px solid var(--border-dim); overflow-y: auto; }
+
+/* COMPONENT UI */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.btn-search {
+  background: var(--accent-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-search:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* TYPOGRAPHY */
+h1, h2, h3 { font-weight: 700; color: #fff; }
+label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+
+/* GLOBAL UTILS */
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.badge-success { background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald); }
+.badge-danger { background: rgba(244, 63, 94, 0.1); color: var(--accent-rose); }
+
+/* SEGMENTED CONTROL (LINEAR STYLE) */
+.segmented-control {
+  background: var(--bg-surface);
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  gap: 4px;
+  border: 1px solid var(--border-dim);
+}
+
+.segment-item {
+  flex: 1;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+}
+
+.segment-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+
+.segment-item.active {
+  background: var(--bg-card) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* TOOLTIP SYSTEM */
+.tooltip-trigger {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip-content {
+  visibility: hidden;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  color: #fff;
+  text-align: left;
+  border-radius: 8px;
+  padding: 10px;
+  width: 200px;
+  border: 1px solid var(--border-bright);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  font-size: 11px;
+  font-weight: 500;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.2s, visibility 0.2s;
+  pointer-events: none;
+}
+
+.tooltip-trigger:hover .tooltip-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-content::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--bg-card) transparent transparent transparent;
+}
