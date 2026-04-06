@@ -8,9 +8,8 @@ import { LiveMap } from './LiveMap';
 import { HUBS } from '../data/logisticsData';
 import type { ShipmentParams } from '../engine/RiskModeler';
 import type { Scenario } from '../engine/RouteOptimizer';
-import { ChevronDown, Map as MapIcon, X, Maximize2, ShieldAlert, Zap } from 'lucide-react';
+import { ChevronDown, X, ShieldAlert, Zap, Settings2, BarChart3, Globe2 } from 'lucide-react';
 import { RiskAlertsView } from './RiskAlertsView';
-import { CostBreakdownView } from './CostBreakdownView';
 import { OverviewView } from './OverviewView';
 import { useCurrency } from '../hooks/useCurrency';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -91,41 +90,84 @@ export const Dashboard: React.FC = () => {
   }, [scenarios, filters, budgetRange, sortBy]);
 
   const tabs = [
-    { id: 'ROUTING', label: 'Tactical Routing' },
-    { id: 'OVERVIEW', label: 'Control Center' },
-    { id: 'NETWORK', label: 'Global Network Map' },
-    { id: 'EXPLAIN', label: 'ML Explainability' },
-    { id: 'RISKS', label: 'Preemptive Risks' },
-    { id: 'COST', label: 'Financial Ledger' }
+    { id: 'ROUTING', label: 'Tactical Routing', icon: Zap },
+    { id: 'OVERVIEW', label: 'Command Center', icon: BarChart3 },
+    { id: 'NETWORK', label: 'Global Map', icon: Globe2 },
+    { id: 'RISKS', label: 'Risk Intelligence', icon: ShieldAlert },
+    { id: 'EXPLAIN', label: 'AI Explainability', icon: Settings2 },
   ];
 
   return (
-    <div className="App">
-      {/* GLOBAL HEADER: SEARCH */}
-      <div style={{ position: 'relative', zIndex: 1000 }}>
-        <TopSearchBar 
-          params={params} 
-          setParams={setParams} 
-          onSearch={() => handleSearch({ isManual: true })} 
-        />
+    <div className="App" style={{ background: 'var(--bg-deep)' }}>
+      {/* HEADER SECTION */}
+      <header style={{ padding: '24px 40px', borderBottom: '1px solid var(--border-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(5, 7, 10, 0.8)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 1100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 32, height: 32, background: 'var(--accent-primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={18} color="white" />
+          </div>
+          <h1 style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.02em' }}>Logistics<span style={{ color: 'var(--accent-primary)' }}>Terminal</span></h1>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border-dim)', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>
+             <span className="pulse" style={{ display: 'inline-block', width: 6, height: 6, background: 'var(--accent-emerald)', borderRadius: '50%', marginRight: 8 }} />
+             NETWORK_ACTIVE
+          </div>
+          <div style={{ width: 1, height: 24, background: 'var(--border-dim)' }} />
+          <button style={{ background: 'none', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer' }}>
+            <Settings2 size={20} />
+          </button>
+        </div>
+      </header>
+
+      {/* TOP SEARCH BAR (GUIDED) */}
+      <div style={{ padding: '40px 40px 0 40px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+        <div style={{ marginBottom: 40 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 12, letterSpacing: '-0.04em' }}>Where is your cargo heading?</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Enter your route details to generate AI-optimized logistics paths across our global network.</p>
+        </div>
+        
+        <div style={{ position: 'relative', zIndex: 1000 }}>
+          <TopSearchBar 
+            params={params} 
+            setParams={setParams} 
+            onSearch={() => handleSearch({ isManual: true })} 
+          />
+        </div>
       </div>
       
-      {/* TABS NAVIGATION */}
-      <div style={{ display: 'flex', background: 'var(--bg-deep)', padding: '0 40px', borderBottom: '1px solid var(--border-dim)', gap: 32 }}>
-        {tabs.map(tab => (
-          <button 
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* TABS NAVIGATION (CENTERED) */}
+      <div style={{ display: 'flex', justifyContent: 'center', background: 'var(--bg-deep)', padding: '20px 40px', gap: 12 }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', padding: 4, borderRadius: 12, display: 'flex', gap: 4, border: '1px solid var(--border-dim)' }}>
+          {tabs.map(tab => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 20px',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: activeTab === tab.id ? 'var(--bg-card)' : 'transparent',
+                color: activeTab === tab.id ? 'white' : 'var(--text-muted)',
+                border: activeTab === tab.id ? '1px solid var(--border-bright)' : '1px solid transparent',
+              }}
+            >
+              <tab.icon size={16} color={activeTab === tab.id ? 'var(--accent-primary)' : 'currentColor'} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="main-layout">
+      <div className="main-layout" style={{ maxWidth: 1600, margin: '0 auto', width: '100%', gridTemplateColumns: '300px 1fr' }}>
         {/* LEFT SIDEBAR: FILTERS */}
-        <aside className="sidebar-panel">
+        <aside className="sidebar-panel" style={{ background: 'transparent', borderRight: '1px solid var(--border-dim)' }}>
           <FilterSidebar 
             budget={budgetRange} 
             setBudget={setBudgetRange} 
@@ -138,20 +180,23 @@ export const Dashboard: React.FC = () => {
         </aside>
 
         {/* CENTER CONTENT: RESULTS / ANALYTICS */}
-        <main className="content-panel">
+        <main className="content-panel" style={{ background: 'transparent' }}>
           {activeTab === 'ROUTING' ? (
-            <>
+            <div style={{ maxWidth: 1000, margin: '0 auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700 }}>Active Tactical Vectors</h2>
+                <div>
+                   <h2 style={{ fontSize: 20, fontWeight: 800 }}>Tactical Routes</h2>
+                   <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{filteredScenarios.length} vectors synthesized for {params.originCity} → {params.destCity}</p>
+                </div>
                 <div style={{ position: 'relative' }}>
-                  <button onClick={() => setIsSortOpen(!isSortOpen)} className="dropdown-item" style={{ width: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-bright)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    Matrix Sort: <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{sortBy}</span>
+                  <button onClick={() => setIsSortOpen(!isSortOpen)} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-dim)', borderRadius: 10, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, fontWeight: 700, color: 'white', cursor: 'pointer' }}>
+                    Sort by: <span style={{ color: 'var(--accent-primary)' }}>{sortBy}</span>
                     <ChevronDown size={14} />
                   </button>
                   {isSortOpen && (
-                    <div className="dropdown-panel" style={{ width: 220, right: 0, left: 'auto' }}>
+                    <div className="dropdown-panel" style={{ width: 220, right: 0, left: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border-bright)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
                       {['BEST', 'CHEAPEST', 'FASTEST', 'LOWEST_RISK'].map(s => (
-                        <button key={s} onClick={() => { setSortBy(s as any); setIsSortOpen(false); }} className={`dropdown-item ${sortBy === s ? 'active' : ''}`}>
+                        <button key={s} onClick={() => { setSortBy(s as any); setIsSortOpen(false); }} style={{ width: '100%', padding: '12px 16px', background: sortBy === s ? 'rgba(99, 102, 241, 0.1)' : 'transparent', border: 'none', color: sortBy === s ? 'white' : 'var(--text-secondary)', textAlign: 'left', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
                           {s}
                         </button>
                       ))}
@@ -166,56 +211,28 @@ export const Dashboard: React.FC = () => {
                     <RouteCard key={s.name} scenario={s} index={idx} />
                   ))
                 ) : (
-                  <div className="card" style={{ textAlign: 'center', padding: '120px 40px', background: 'transparent', borderStyle: 'dashed' }}>
+                  <div className="card" style={{ textAlign: 'center', padding: '120px 40px', background: 'rgba(255,255,255,0.01)', borderStyle: 'dashed' }}>
                      <Zap size={48} color="var(--border-bright)" style={{ marginBottom: 24 }} />
                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>No logistics paths available for this mission.</div>
                      <button onClick={() => setFilters({ modes: ['AIR', 'OCEAN', 'ROAD'], speed: 'all', risk: 'HIGH' })} style={{ color: 'var(--accent-primary)', background: 'none', border: 'none', marginTop: 16, cursor: 'pointer', fontWeight: 700 }}>Reset Filters</button>
                   </div>
                 )}
               </div>
-            </>
+            </div>
           ) : (
             <div style={{ animation: 'fadeIn 0.3s', height: '100%' }}>
               {activeTab === 'NETWORK' && (
-            <GlobalNetworkView 
-              chaosLevel={chaosLevel} 
-              setChaosLevel={setChaosLevel} 
-            />
-          )}
+                <GlobalNetworkView 
+                  chaosLevel={chaosLevel} 
+                  setChaosLevel={setChaosLevel} 
+                />
+              )}
               {activeTab === 'EXPLAIN' && <ShapExplainabilityView scenarios={scenarios} />}
               {activeTab === 'RISKS' && <RiskAlertsView scenarios={scenarios} news={newsSignals} globalRisk={globalGeopolRisk} />}
-              {activeTab === 'COST' && <CostBreakdownView scenarios={scenarios} />}
               {activeTab === 'OVERVIEW' && <OverviewView scenarios={filteredScenarios} origin={params.originCity} dest={params.destCity} />}
             </div>
           )}
         </main>
-
-        {/* RIGHT SIDEBAR: INSIGHTS & MAP */}
-        <aside className="insights-panel">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <MapIcon size={18} color="var(--accent-primary)" />
-              <h3 style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 }}>Live Map</h3>
-            </div>
-            <button onClick={() => setIsMapExpanded(true)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-               <Maximize2 size={16} />
-            </button>
-          </div>
-          
-          <div onClick={() => setIsMapExpanded(true)} style={{ height: 280, background: '#000', borderRadius: 12, overflow: 'hidden', position: 'relative', cursor: 'zoom-in', border: '1px solid var(--border-dim)', marginBottom: 32 }}>
-             <LiveMap origin={params.originHub || HUBS[0]} destination={params.destHub || HUBS[1]} />
-          </div>
-
-          <div style={{ padding: 20, background: 'rgba(99, 102, 241, 0.05)', borderRadius: 12, border: '1px solid rgba(99, 102, 241, 0.1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <ShieldAlert size={16} color="var(--accent-primary)" />
-              <div style={{ fontSize: 11, fontWeight: 900 }}>SYSTEM_INTEGRITY</div>
-            </div>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Route stability identified. Corridor from {params.originCity} to {params.destCity} is currently observing <strong>Nominal</strong> activity.
-            </p>
-          </div>
-        </aside>
       </div>
 
       {/* FULL MAP MODAL */}
@@ -239,3 +256,4 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
