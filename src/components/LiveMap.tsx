@@ -49,10 +49,59 @@ export const LiveMap: React.FC<Props> = ({ origin, destination, selectedScenario
     (origin.coordinates[1] + destination.coordinates[1]) / 2,
   ];
 
-  // Support multi-segment polylines for rerouting
-  const polylines = selectedScenario 
-    ? selectedScenario.segments.map(s => [s.from.coordinates, s.to.coordinates] as [number, number][])
-    : [[origin.coordinates, destination.coordinates] as [number, number][]];
+  // Support multi-segment polylines for rerouting and arc smoothing
+  const getRenderPaths = () => {
+    const segments = selectedScenario 
+      ? selectedScenario.segments
+      : [{ from: origin, to: destination, mode: 'air' as const }];
+
+    const paths: [number, number][][] = [];
+
+    segments.forEach(seg => {
+      const p1 = seg.from.coordinates;
+      const p2 = seg.to.coordinates;
+      const mode = seg.mode;
+      
+      // Direct line for road
+      if (mode === 'road') {
+         paths.push([p1, p2]);
+         return;
+      }
+      
+      // Intelligent Routing visual for Sea crossing continents (simulating real shipping lanes instead of drawing through land)
+      if (mode === 'sea') {
+         const lon1 = p1[1];
+         const lon2 = p2[1];
+         // Africa bypass (Cape of Good Hope) if crossing between Asia and Americas roughly
+         if ((lon1 > 40 && lon2 < -20) || (lon1 < -20 && lon2 > 40)) {
+             paths.push([p1, [-35, 20], p2]);
+             return;
+         }
+         // Suez Canal bypass if crossing Asia to Europe
+         if ((lon1 > 40 && lon2 > -10 && lon2 < 40 && p2[0] > 30) || (lon2 > 40 && lon1 > -10 && lon1 < 40 && p1[0] > 30)) {
+             paths.push([p1, [12, 45], [27, 34], [35, 20], p2]);
+             return;
+         }
+      }
+
+      // Add a slight arc curve to flight paths to look natural (and sea routes that didn't trigger bypasses)
+      const arcPoints: [number, number][] = [];
+      const numPoints = 20;
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const lat = p1[0] * (1 - t) + p2[0] * t;
+        const lng = p1[1] * (1 - t) + p2[1] * t;
+        // Arc offset based on sine wave, flights arch higher
+        const offset = Math.sin(t * Math.PI) * (mode === 'air' ? 12 : 3);
+        arcPoints.push([lat + offset, lng]);
+      }
+      paths.push(arcPoints);
+    });
+    
+    return paths;
+  };
+
+  const polylines = getRenderPaths();
 
   const getPathColor = () => {
     if (!selectedScenario) return '#6366f1';
@@ -68,8 +117,8 @@ export const LiveMap: React.FC<Props> = ({ origin, destination, selectedScenario
         center={center} 
         zoom={3} 
         style={{ height: '100%', width: '100%' }}
-        zoomControl={false}
-        scrollWheelZoom={false}
+        zoomControl={true}
+        scrollWheelZoom={true}
       >
         <MapResizer />
         <ChangeView center={center} zoom={3} />
